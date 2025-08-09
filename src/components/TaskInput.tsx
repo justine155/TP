@@ -10,6 +10,9 @@ interface TaskInputProps {
   onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   onCancel?: () => void;
   userSettings: UserSettings;
+  existingTasks?: Task[];
+  studyPlans?: StudyPlan[];
+  commitments?: FixedCommitment[];
 }
 
 
