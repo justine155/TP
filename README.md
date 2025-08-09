@@ -13,7 +13,7 @@ TimePilot is a sophisticated study planning application that uses intelligent al
 - **Task Categories**: Organize tasks by subject, type, and impact level
 
 ### 📅 Advanced Study Planning
-- **Intelligent Scheduling**: AI-powered algorithms that distribute study hours optimally
+- **Intelligent Scheduling**: AI-powered algorithms distribute study hours optimally
 - **Multiple Distribution Modes**: 
   - **Even**: Balanced distribution across available time
   - **Pressure**: Front-loads urgent tasks for deadline-driven study
