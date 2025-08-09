@@ -17,11 +17,21 @@ const TaskFeasibilityWarnings: React.FC<TaskFeasibilityWarningsProps> = ({
   const [dismissedWarnings, setDismissedWarnings] = useState<Set<number>>(new Set());
   
   const { warnings, alternativeSuggestions } = feasibilityResult;
-  
+
+  // Debug logging
+  console.log('⚠️ TaskFeasibilityWarnings rendered:', {
+    totalWarnings: warnings.length,
+    warningTypes: warnings.map(w => ({ severity: w.severity, title: w.title })),
+    alternativeSuggestions
+  });
+
   // Filter out dismissed warnings
   const visibleWarnings = warnings.filter((_, index) => !dismissedWarnings.has(index));
-  
-  if (visibleWarnings.length === 0) return null;
+
+  if (visibleWarnings.length === 0) {
+    console.log('ℹ️ No visible warnings, component returning null');
+    return null;
+  }
   
   const toggleWarning = (index: number) => {
     const newExpanded = new Set(expandedWarnings);
