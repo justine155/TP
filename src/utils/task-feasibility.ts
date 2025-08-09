@@ -88,6 +88,22 @@ export const checkTaskFeasibility = (
   // 10. CATEGORY-SPECIFIC ADVISORIES
   const categoryWarnings = checkCategorySpecificIssues(taskData, userSettings);
   warnings.push(...categoryWarnings);
+
+  // 11. IMPOSSIBLE SESSION DISTRIBUTION
+  const distributionWarnings = checkSessionDistributionFeasibility(taskData, deadline, userSettings);
+  warnings.push(...distributionWarnings);
+
+  // 12. DEADLINE REALISM CHECKS
+  const deadlineWarnings = checkDeadlineRealism(taskData, deadline, userSettings);
+  warnings.push(...deadlineWarnings);
+
+  // 13. WORKDAY DISTRIBUTION ISSUES
+  const workdayWarnings = checkWorkdayDistribution(taskData, deadline, userSettings);
+  warnings.push(...workdayWarnings);
+
+  // 14. TASK COMPLETION IMPOSSIBILITIES
+  const completionWarnings = checkTaskCompletionFeasibility(taskData, deadline, userSettings);
+  warnings.push(...completionWarnings);
   
   const criticalWarnings = warnings.filter(w => w.severity === 'critical');
   const isValid = criticalWarnings.length === 0;
