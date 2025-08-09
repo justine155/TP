@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Info, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Task, UserSettings } from '../types';
 import { checkFrequencyDeadlineConflict } from '../utils/scheduling';
+import { checkTaskFeasibility } from '../utils/task-feasibility';
 import TimeEstimationModal from './TimeEstimationModal';
+import TaskFeasibilityWarnings from './TaskFeasibilityWarnings';
 
 interface TaskInputProps {
   onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
@@ -1109,7 +1111,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onAddTask, onCancel, userSettings
                     <h5 className="font-medium text-gray-800 dark:text-gray-200 mb-2">Low Impact One-Time Tasks</h5>
                     <ul className="text-sm space-y-1">
                       <li>• Scheduled on deadline day (respecting buffer days)</li>
-                      <li>• May be moved to accommodate higher priority tasks</li>
+                      <li>�� May be moved to accommodate higher priority tasks</li>
                       <li>• Placed in less optimal time slots if needed</li>
                       <li>• Example: Routine administrative tasks, optional activities</li>
                     </ul>
