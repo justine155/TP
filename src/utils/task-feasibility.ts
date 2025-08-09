@@ -242,7 +242,7 @@ const checkTimeEstimationFeasibility = (
       exceedsCapacity: taskData.estimatedHours > userSettings.dailyAvailableHours
     });
 
-    if (isDueToday && !taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
+    if (isUrgentToday && !taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
       console.log('🚨 CRITICAL WARNING TRIGGERED: Task due today exceeds daily capacity');
       warnings.push({
         type: 'error',
@@ -250,6 +250,19 @@ const checkTimeEstimationFeasibility = (
         title: 'Task due today exceeds daily capacity',
         message: `Task requires ${taskData.estimatedHours} hours but you only have ${userSettings.dailyAvailableHours} hours available today. This task isn't marked as "one sitting" so it can't be completed.`,
         suggestion: 'Either mark as "Complete in one sitting" if possible, extend deadline to tomorrow, or reduce scope.',
+        severity: 'critical'
+      });
+    }
+
+    // CRITICAL: Tasks due today that exceed available hours even as one-sitting
+    if (isUrgentToday && taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
+      console.log('🚨 CRITICAL WARNING TRIGGERED: One-sitting task due today exceeds daily capacity');
+      warnings.push({
+        type: 'error',
+        category: 'estimation',
+        title: 'One-sitting task due today exceeds daily capacity',
+        message: `One-sitting task requires ${taskData.estimatedHours} hours but you only have ${userSettings.dailyAvailableHours} hours available today.`,
+        suggestion: 'Extend deadline to tomorrow, reduce scope, or increase daily available hours.',
         severity: 'critical'
       });
     }
