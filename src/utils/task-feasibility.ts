@@ -596,9 +596,9 @@ const generateAlternativeSuggestions = (
   userSettings: UserSettings
 ): any => {
   const suggestions: any = {};
-  
-  // Suggest frequency changes
-  const frequencyWarnings = warnings.filter(w => w.category === 'frequency');
+
+  // Suggest frequency changes based on various warning types
+  const frequencyWarnings = warnings.filter(w => w.category === 'frequency' || w.category === 'distribution');
   if (frequencyWarnings.length > 0) {
     if (taskData.targetFrequency === 'weekly') {
       suggestions.frequency = '3x-week';
@@ -606,22 +606,72 @@ const generateAlternativeSuggestions = (
       suggestions.frequency = 'daily';
     }
   }
-  
-  // Suggest deadline extensions
-  const deadlineWarnings = warnings.filter(w => w.category === 'timing' || w.category === 'workload');
-  if (deadlineWarnings.length > 0 && taskData.deadline) {
+
+  // Suggest deadline extensions for multiple scenarios
+  const deadlineExtensionWarnings = warnings.filter(w =>
+    w.category === 'timing' ||
+    w.category === 'workload' ||
+    w.category === 'estimation' ||
+    w.category === 'deadline' ||
+    w.category === 'completion'
+  );
+
+  if (deadlineExtensionWarnings.length > 0 && taskData.deadline) {
     const currentDeadline = new Date(taskData.deadline);
+    const now = new Date();
+    const daysUntilDeadline = Math.ceil((currentDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    let extensionDays = 7; // Default 1 week extension
+
+    // More intelligent extension suggestions
+    if (daysUntilDeadline <= 1) {
+      // For tasks due today/tomorrow, suggest 3-7 days
+      extensionDays = Math.max(3, Math.ceil(taskData.estimatedHours / userSettings.dailyAvailableHours) + 1);
+    } else if (taskData.estimatedHours > userSettings.dailyAvailableHours * daysUntilDeadline) {
+      // For impossible workloads, calculate minimum needed days
+      const minDaysNeeded = Math.ceil(taskData.estimatedHours / userSettings.dailyAvailableHours);
+      extensionDays = minDaysNeeded - daysUntilDeadline + 1;
+    } else if (userSettings.bufferDays > 0 && daysUntilDeadline <= userSettings.bufferDays) {
+      // Respect user's buffer preferences
+      extensionDays = userSettings.bufferDays - daysUntilDeadline + 2;
+    }
+
     const suggestedDeadline = new Date(currentDeadline);
-    suggestedDeadline.setDate(suggestedDeadline.getDate() + 7); // Add a week
+    suggestedDeadline.setDate(suggestedDeadline.getDate() + extensionDays);
     suggestions.deadline = suggestedDeadline.toISOString().split('T')[0];
   }
-  
+
   // Suggest estimation adjustments
   const estimationWarnings = warnings.filter(w => w.category === 'estimation');
-  if (estimationWarnings.some(w => w.message.includes('small'))) {
+  if (estimationWarnings.some(w => w.message.includes('small') || w.message.includes('short'))) {
     suggestions.estimation = Math.max(0.5, taskData.estimatedHours);
+  } else if (estimationWarnings.some(w => w.message.includes('large') || w.message.includes('substantial'))) {
+    // Suggest breaking down large tasks
+    suggestions.estimation = Math.min(20, Math.ceil(taskData.estimatedHours / 3));
+    suggestions.note = 'Consider creating multiple smaller tasks instead of one large task';
   }
-  
+
+  // Suggest marking as one-sitting for tasks due today that exceed daily hours
+  const todayWarnings = warnings.filter(w => w.message.includes('due today') && w.message.includes('one sitting'));
+  if (todayWarnings.length > 0 && !taskData.isOneTimeTask && taskData.estimatedHours <= userSettings.dailyAvailableHours * 1.2) {
+    suggestions.markAsOneSitting = true;
+  }
+
+  // Suggest removing one-sitting for very long tasks
+  const oneSittingWarnings = warnings.filter(w => w.message.includes('one-sitting') && w.message.includes('too long'));
+  if (oneSittingWarnings.length > 0 && taskData.isOneTimeTask) {
+    suggestions.removeOneSitting = true;
+  }
+
+  // Suggest increasing daily hours for impossible workloads
+  const impossibleWarnings = warnings.filter(w => w.severity === 'critical' && w.message.includes('daily'));
+  if (impossibleWarnings.length > 0) {
+    const requiredHours = Math.ceil(taskData.estimatedHours / Math.max(1, Math.ceil((new Date(taskData.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))));
+    if (requiredHours <= 12) { // Only suggest if reasonable
+      suggestions.increaseDailyHours = requiredHours;
+    }
+  }
+
   return suggestions;
 };
 
