@@ -213,15 +213,29 @@ const checkTimeEstimationFeasibility = (
   // CRITICAL: Tasks due today that exceed daily capacity (non-one-sitting)
   if (deadline) {
     const now = new Date();
+
+    // Get today's date string in local timezone
+    const todayString = now.toISOString().split('T')[0];
+    const deadlineString = deadline.toISOString().split('T')[0];
+    const isDueToday = deadlineString === todayString;
+
+    // Also check if deadline is before end of today
     const todayEnd = new Date(now);
     todayEnd.setHours(23, 59, 59, 999);
-    const isDueToday = deadline <= todayEnd;
+    const isBeforeEndOfToday = deadline <= todayEnd;
+
+    // More lenient check: is the deadline today or has it passed?
+    const isUrgentToday = isDueToday || (deadline <= now);
 
     // Debug logging
     console.log('🔍 Feasibility Debug:', {
       deadline: deadline.toISOString(),
+      deadlineString,
+      todayString,
       todayEnd: todayEnd.toISOString(),
       isDueToday,
+      isBeforeEndOfToday,
+      isUrgentToday,
       isOneTimeTask: taskData.isOneTimeTask,
       estimatedHours: taskData.estimatedHours,
       dailyAvailableHours: userSettings.dailyAvailableHours,
