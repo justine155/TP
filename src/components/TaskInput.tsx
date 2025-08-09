@@ -275,7 +275,12 @@ const TaskInput: React.FC<TaskInputProps> = ({
       isValid: result.isValid,
       warningCount: result.warnings.length,
       criticalWarnings: result.warnings.filter(w => w.severity === 'critical').length,
-      taskData: taskDataForCheck
+      hasCriticalFeasibilityIssues: result.warnings?.some(w => w.severity === 'critical') || false,
+      taskData: taskDataForCheck,
+      userSettings: {
+        dailyAvailableHours: userSettings.dailyAvailableHours,
+        workDays: userSettings.workDays
+      }
     });
 
     return result;
