@@ -100,18 +100,6 @@ const TaskFeasibilityWarningsCompact: React.FC<TaskFeasibilityWarningsCompactPro
             )}
           </div>
           <div className="flex items-center space-x-2">
-            {/* Quick Fix Button for Single Critical Issues */}
-            {criticalWarnings.length === 1 && alternativeSuggestions && Object.keys(alternativeSuggestions).length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  applySuggestion(alternativeSuggestions);
-                }}
-                className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
-              >
-                Quick Fix
-              </button>
-            )}
             {isExpanded ? (
               <ChevronUp className={`w-4 h-4 ${summary.color}`} />
             ) : (
