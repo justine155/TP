@@ -30,7 +30,12 @@ const TaskFeasibilityWarnings: React.FC<TaskFeasibilityWarningsProps> = ({
 
   if (visibleWarnings.length === 0) {
     console.log('ℹ️ No visible warnings, component returning null');
-    return null;
+    // Temporary debug element to confirm component is being called
+    return (
+      <div className="text-xs text-gray-400 p-1">
+        Debug: TaskFeasibilityWarnings component rendered ({warnings.length} total warnings, {visibleWarnings.length} visible)
+      </div>
+    );
   }
   
   const toggleWarning = (index: number) => {
