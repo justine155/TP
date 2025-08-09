@@ -217,7 +217,19 @@ const checkTimeEstimationFeasibility = (
     todayEnd.setHours(23, 59, 59, 999);
     const isDueToday = deadline <= todayEnd;
 
+    // Debug logging
+    console.log('🔍 Feasibility Debug:', {
+      deadline: deadline.toISOString(),
+      todayEnd: todayEnd.toISOString(),
+      isDueToday,
+      isOneTimeTask: taskData.isOneTimeTask,
+      estimatedHours: taskData.estimatedHours,
+      dailyAvailableHours: userSettings.dailyAvailableHours,
+      exceedsCapacity: taskData.estimatedHours > userSettings.dailyAvailableHours
+    });
+
     if (isDueToday && !taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
+      console.log('🚨 CRITICAL WARNING TRIGGERED: Task due today exceeds daily capacity');
       warnings.push({
         type: 'error',
         category: 'estimation',
