@@ -290,6 +290,30 @@ const TaskInput: React.FC<TaskInputProps> = ({
     commitments
   ]);
 
+  // Handle applying feasibility suggestions
+  const handleApplySuggestions = (suggestions: any) => {
+    setFormData(prev => {
+      const updates: any = { ...prev };
+
+      if (suggestions.frequency) {
+        updates.targetFrequency = suggestions.frequency;
+      }
+
+      if (suggestions.deadline) {
+        updates.deadline = suggestions.deadline;
+      }
+
+      if (suggestions.estimation) {
+        const hours = Math.floor(suggestions.estimation);
+        const minutes = Math.round((suggestions.estimation - hours) * 60);
+        updates.estimatedHours = hours;
+        updates.estimatedMinutes = minutes;
+      }
+
+      return updates;
+    });
+  };
+
   // Enhanced validation with better error messages
   const isTitleValid = formData.title.trim().length > 0;
   const isTitleLengthValid = formData.title.trim().length <= 100; // Max 100 characters
