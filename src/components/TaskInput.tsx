@@ -310,6 +310,21 @@ const TaskInput: React.FC<TaskInputProps> = ({
         updates.estimatedMinutes = minutes;
       }
 
+      if (suggestions.markAsOneSitting) {
+        updates.isOneTimeTask = true;
+      }
+
+      if (suggestions.removeOneSitting) {
+        updates.isOneTimeTask = false;
+      }
+
+      // Note: increaseDailyHours would need to be handled by updating user settings
+      // This would require callback to parent component to update settings
+      if (suggestions.increaseDailyHours) {
+        // Show a message that this requires updating settings
+        alert(`To handle this task, consider increasing your daily available hours to ${suggestions.increaseDailyHours}h in Settings.`);
+      }
+
       return updates;
     });
   };
