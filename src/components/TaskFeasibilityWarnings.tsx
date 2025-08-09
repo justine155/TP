@@ -225,10 +225,55 @@ const TaskFeasibilityWarnings: React.FC<TaskFeasibilityWarningsProps> = ({
                   <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-2">
                     <span className="text-sm">
                       Adjust estimation to <strong>{alternativeSuggestions.estimation}h</strong>
+                      {alternativeSuggestions.note && (
+                        <div className="text-xs text-gray-600 mt-1">{alternativeSuggestions.note}</div>
+                      )}
                     </span>
                     <button
                       onClick={() => applySuggestion({ estimation: alternativeSuggestions.estimation })}
                       className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+
+                {alternativeSuggestions.markAsOneSitting && (
+                  <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-2">
+                    <span className="text-sm">
+                      Mark as <strong>"Complete in one sitting"</strong> to fit in today
+                    </span>
+                    <button
+                      onClick={() => applySuggestion({ markAsOneSitting: true })}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+
+                {alternativeSuggestions.removeOneSitting && (
+                  <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-2">
+                    <span className="text-sm">
+                      Remove <strong>"Complete in one sitting"</strong> - task is too long
+                    </span>
+                    <button
+                      onClick={() => applySuggestion({ removeOneSitting: true })}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+
+                {alternativeSuggestions.increaseDailyHours && (
+                  <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-2">
+                    <span className="text-sm">
+                      Increase daily available hours to <strong>{alternativeSuggestions.increaseDailyHours}h</strong>
+                    </span>
+                    <button
+                      onClick={() => applySuggestion({ increaseDailyHours: alternativeSuggestions.increaseDailyHours })}
+                      className="px-3 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700 transition-colors"
                     >
                       Apply
                     </button>
