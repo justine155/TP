@@ -106,9 +106,105 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({
   const isDeadlineRequiredForOneSitting = formData.isOneTimeTask && (!formData.deadline || formData.deadline.trim() === '');
   const estimatedDecimalHours = convertToDecimalHours(formData.estimatedHours, formData.estimatedMinutes);
   const isOneSittingTooLong = formData.isOneTimeTask && estimatedDecimalHours > userSettings.dailyAvailableHours;
+
+  // Comprehensive feasibility checking
+  const feasibilityResult = useMemo(() => {
+    // Only run feasibility check if we have minimum required data
+    if (!formData.title.trim() || estimatedDecimalHours <= 0) {
+      return { isValid: true, warnings: [] };
+    }
+
+    const taskDataForCheck = {
+      title: formData.title,
+      deadline: formData.deadline,
+      estimatedHours: estimatedDecimalHours,
+      targetFrequency: formData.targetFrequency,
+      deadlineType: formData.deadlineType,
+      importance: formData.impact === 'high',
+      category: showCustomCategory ? formData.customCategory : formData.category,
+      minWorkBlock: formData.minWorkBlock,
+      maxSessionLength: formData.maxSessionLength,
+      isOneTimeTask: formData.isOneTimeTask,
+      preferredTimeSlots: formData.preferredTimeSlots
+    };
+
+    console.log('🚀 TaskInputSimplified - Running feasibility check:', taskDataForCheck);
+
+    const result = checkTaskFeasibility(
+      taskDataForCheck,
+      userSettings,
+      existingTasks,
+      studyPlans,
+      commitments
+    );
+
+    console.log('📊 Feasibility Result:', {
+      isValid: result.isValid,
+      warningCount: result.warnings.length,
+      criticalWarnings: result.warnings.filter(w => w.severity === 'critical').length,
+      warnings: result.warnings
+    });
+
+    return result;
+  }, [
+    formData.title,
+    formData.deadline,
+    formData.estimatedHours,
+    formData.estimatedMinutes,
+    formData.targetFrequency,
+    formData.deadlineType,
+    formData.impact,
+    formData.category,
+    formData.customCategory,
+    showCustomCategory,
+    formData.minWorkBlock,
+    formData.maxSessionLength,
+    formData.isOneTimeTask,
+    formData.preferredTimeSlots,
+    userSettings,
+    existingTasks,
+    studyPlans,
+    commitments,
+    estimatedDecimalHours
+  ]);
+
+  // Handle applying feasibility suggestions
+  const handleApplySuggestions = (suggestions: any) => {
+    setFormData(prev => {
+      const updates: any = { ...prev };
+
+      if (suggestions.frequency) {
+        updates.targetFrequency = suggestions.frequency;
+      }
+
+      if (suggestions.deadline) {
+        updates.deadline = suggestions.deadline;
+      }
+
+      if (suggestions.estimation) {
+        const hours = Math.floor(suggestions.estimation);
+        const minutes = Math.round((suggestions.estimation - hours) * 60);
+        updates.estimatedHours = hours.toString();
+        updates.estimatedMinutes = minutes.toString();
+      }
+
+      if (suggestions.markAsOneSitting) {
+        updates.isOneTimeTask = true;
+      }
+
+      if (suggestions.removeOneSitting) {
+        updates.isOneTimeTask = false;
+      }
+
+      return updates;
+    });
+  };
+
+  const hasCriticalFeasibilityIssues = feasibilityResult.warnings?.some(w => w.severity === 'critical') || false;
   const isFormValid = isTitleValid && isTitleLengthValid && isDeadlineValid &&
                    isEstimatedValid && isEstimatedReasonable && isImpactValid &&
-                   isCustomCategoryValid && !isDeadlineRequiredForOneSitting;
+                   isCustomCategoryValid && !isDeadlineRequiredForOneSitting &&
+                   !hasCriticalFeasibilityIssues;
 
   const getValidationErrors = (): string[] => {
     const errors: string[] = [];
