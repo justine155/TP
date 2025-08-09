@@ -1284,25 +1284,43 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           background-color: #1f2937 !important;
         }
 
-        /* Drag and Drop Styles */
+        /* Drag and Drop Styles - Enhanced for precision */
         .rbc-addons-dnd-drag-preview {
-          background-color: rgba(59, 130, 246, 0.1) !important;
-          border: 2px dashed #3b82f6 !important;
-          opacity: 0.7 !important;
+          background-color: rgba(59, 130, 246, 0.2) !important;
+          border: 3px dashed #3b82f6 !important;
+          opacity: 0.8 !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
         }
 
         .rbc-addons-dnd-over {
-          background-color: rgba(34, 197, 94, 0.1) !important;
-          border: 2px solid #22c55e !important;
+          background-color: rgba(34, 197, 94, 0.15) !important;
+          border: 3px solid #22c55e !important;
+          border-radius: 8px !important;
+          box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
         }
 
         .rbc-event.rbc-addons-dnd-dragged-event {
-          opacity: 0.5 !important;
+          opacity: 0.4 !important;
           cursor: grabbing !important;
+          transform: scale(0.98) !important;
+          transition: transform 0.1s ease !important;
         }
 
         .rbc-event:hover {
           cursor: grab !important;
+          transform: scale(1.02) !important;
+          transition: transform 0.1s ease !important;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Enhanced grid lines during drag */
+        .rbc-addons-dnd .rbc-time-slot {
+          transition: background-color 0.1s ease !important;
+        }
+
+        .rbc-addons-dnd .rbc-time-slot:hover {
+          background-color: rgba(59, 130, 246, 0.05) !important;
         }
 
         /* Resize handles disabled */
@@ -1314,6 +1332,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         /* Only allow drag on study sessions */
         .rbc-event[data-event-type="commitment"] {
           cursor: default !important;
+        }
+
+        /* Better visual feedback for valid drop zones */
+        .rbc-time-slot.rbc-dnd-over {
+          background-color: rgba(34, 197, 94, 0.1) !important;
+          border-left: 4px solid #22c55e !important;
         }
       `}</style>
 
