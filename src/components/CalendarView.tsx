@@ -588,9 +588,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   // Handle drag start
-  const handleDragStart = () => {
+  const handleDragStart = (event: any) => {
     setIsDragging(true);
     setDragFeedback('');
+
+    // Store the original position for comparison
+    if (event && event.start) {
+      const originalTime = moment(event.start).format('HH:mm');
+      setDragFeedback(`Dragging session from ${originalTime}...`);
+    }
   };
 
   // Handle event drop
@@ -641,6 +647,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       return;
     }
 
+    // Check for micro-movements - if user drops very close to original position, keep it there
+    const originalStartTime = moment(originalDate + ' ' + session.startTime).toDate();
+    const timeDifferenceFromOriginal = Math.abs(moment(start).diff(moment(originalStartTime), 'minutes'));
+
+    // If the movement is less than 5 minutes, consider it a micro-movement and ignore
+    if (timeDifferenceFromOriginal < 5) {
+      setDragFeedback('Session returned to original position (micro-movement ignored)');
+      setTimeout(() => setDragFeedback(''), 3000);
+      return;
+    }
+
     // Calculate the time difference to inform user if session was moved
     const targetTime = moment(start).format('HH:mm');
     const actualTime = moment(availableSlot.start).format('HH:mm');
@@ -649,11 +666,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     // Provide specific feedback about placement
     let placementMessage = '';
     if (timeDifferenceMinutes === 0) {
-      placementMessage = `Session placed at exactly ${actualTime}`;
+      placementMessage = `✅ Session placed exactly at ${actualTime}`;
     } else if (timeDifferenceMinutes <= 15) {
-      placementMessage = `Session placed at ${actualTime} (${timeDifferenceMinutes}min from target)`;
+      placementMessage = `📍 Session placed at ${actualTime} (${timeDifferenceMinutes}min from target)`;
     } else {
-      placementMessage = `Session moved to ${actualTime} (nearest available slot)`;
+      placementMessage = `🔄 Session moved to ${actualTime} (nearest available slot)`;
     }
 
     // Get the original plan date where the session was dragged from
