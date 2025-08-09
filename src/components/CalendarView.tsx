@@ -497,7 +497,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   };
 
-  // Utility function to find available time slots
+  // Utility function to find available time slots with precise placement
   const findNearestAvailableSlot = (targetStart: Date, sessionDuration: number, targetDate: string): { start: Date; end: Date } | null => {
     if (!settings) return null;
 
@@ -553,18 +553,28 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       return true;
     };
 
-    // Try to find the nearest available slot to the target time
-    // Use buffer time from settings, with 15 minutes as fallback minimum
-    const bufferMinutes = Math.max(settings.bufferTimeBetweenSessions || 15, 5); // Minimum 5 minutes
-    const gridSize = bufferMinutes * 60 * 1000; // Convert minutes to milliseconds
+    // IMPROVED: Try to place at exact target time first, with minimal snapping
+    // Snap to 15-minute intervals instead of buffer intervals for better precision
+    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
 
-    // Round target time to nearest buffer interval
-    const roundedTarget = new Date(Math.round(targetStart.getTime() / gridSize) * gridSize);
+    // Round target time to nearest 15-minute interval
+    const roundedTarget = new Date(Math.round(targetStart.getTime() / FIFTEEN_MINUTES) * FIFTEEN_MINUTES);
+    const targetEnd = new Date(roundedTarget.getTime() + sessionDurationMs);
 
-    // Search for available slots starting from the rounded target time
-    for (let offset = 0; offset <= 12 * 60 * 60 * 1000; offset += gridSize) { // Search within 12 hours
-      // Try both directions from target time
-      for (const direction of [1, -1]) {
+    // First, try the exact target location
+    if (isSlotValid(roundedTarget, targetEnd)) {
+      return { start: roundedTarget, end: targetEnd };
+    }
+
+    // If exact location doesn't work, search for nearest alternative
+    // Search in smaller increments (15 minutes) for better precision
+    const maxSearchTime = 6 * 60 * 60 * 1000; // Search within 6 hours (reduced from 12)
+
+    for (let offset = FIFTEEN_MINUTES; offset <= maxSearchTime; offset += FIFTEEN_MINUTES) {
+      // Try both directions from target time, but prioritize forward direction first
+      const directions = [1, -1];
+
+      for (const direction of directions) {
         const testStart = new Date(roundedTarget.getTime() + (direction * offset));
         const testEnd = new Date(testStart.getTime() + sessionDurationMs);
 
