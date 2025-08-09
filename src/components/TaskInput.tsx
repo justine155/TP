@@ -976,11 +976,21 @@ const TaskInput: React.FC<TaskInputProps> = ({
         <div className="flex space-x-3 mt-4 justify-end">
             <button
               type="submit"
-            className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-green-600 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 text-lg shadow add-task-button"
+            className={`px-6 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 text-lg shadow add-task-button ${
+              !isFormValid
+                ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 cursor-not-allowed'
+                : 'bg-gradient-to-r from-green-500 to-blue-600 text-white hover:from-green-600 hover:to-blue-700'
+            }`}
             disabled={!isFormValid}
+            title={hasCriticalFeasibilityIssues ? 'Critical feasibility issues must be resolved first' : ''}
             >
               <Plus size={20} />
-              <span>Add Task</span>
+              <span>
+                {hasCriticalFeasibilityIssues
+                  ? 'Resolve Critical Issues First'
+                  : 'Add Task'
+                }
+              </span>
             </button>
             <button
               type="button"
