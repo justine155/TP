@@ -624,3 +624,265 @@ const generateAlternativeSuggestions = (
   
   return suggestions;
 };
+
+// 11. IMPOSSIBLE SESSION DISTRIBUTION
+const checkSessionDistributionFeasibility = (
+  taskData: any,
+  deadline: Date | null,
+  userSettings: UserSettings
+): FeasibilityWarning[] => {
+  const warnings: FeasibilityWarning[] = [];
+
+  if (!deadline) return warnings;
+
+  const now = new Date();
+  const daysUntilDeadline = Math.max(1, Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+  // Count actual work days until deadline
+  let workDaysCount = 0;
+  const currentDate = new Date(now);
+  while (currentDate <= deadline) {
+    if (userSettings.workDays.includes(currentDate.getDay())) {
+      workDaysCount++;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // CRITICAL: No work days until deadline
+  if (workDaysCount === 0) {
+    warnings.push({
+      type: 'error',
+      category: 'workdays',
+      title: 'No work days until deadline',
+      message: `Deadline is in ${daysUntilDeadline} days but none are configured as work days.`,
+      suggestion: 'Change deadline to a work day, or adjust your work day settings.',
+      severity: 'critical'
+    });
+  }
+
+  // CRITICAL: Impossible session count for frequency
+  const minSessionHours = Math.max((userSettings.minSessionLength || 15) / 60, 0.25); // At least 15 min
+  const maxSessionsPerDay = Math.floor(userSettings.dailyAvailableHours / minSessionHours);
+  const minSessionsNeeded = Math.ceil(taskData.estimatedHours / userSettings.dailyAvailableHours);
+
+  // Check frequency-specific session distribution
+  switch (taskData.targetFrequency) {
+    case 'weekly':
+      const maxWeeklySessions = Math.floor(workDaysCount / 7) * 2; // Max 2 sessions per week
+      if (minSessionsNeeded > maxWeeklySessions) {
+        warnings.push({
+          type: 'error',
+          category: 'distribution',
+          title: 'Too many sessions for weekly frequency',
+          message: `Task needs ${minSessionsNeeded} sessions but weekly frequency only allows ${maxWeeklySessions} sessions until deadline.`,
+          suggestion: 'Change to "3x per week" or "daily" frequency, or extend deadline.',
+          severity: 'critical'
+        });
+      }
+      break;
+
+    case '3x-week':
+      const maxThreePerWeekSessions = Math.floor(workDaysCount / 7) * 3;
+      if (minSessionsNeeded > maxThreePerWeekSessions) {
+        warnings.push({
+          type: 'error',
+          category: 'distribution',
+          title: 'Too many sessions for 3x-week frequency',
+          message: `Task needs ${minSessionsNeeded} sessions but 3x-week frequency only allows ${maxThreePerWeekSessions} sessions until deadline.`,
+          suggestion: 'Change to daily frequency or extend deadline.',
+          severity: 'critical'
+        });
+      }
+      break;
+  }
+
+  return warnings;
+};
+
+// 12. DEADLINE REALISM CHECKS
+const checkDeadlineRealism = (
+  taskData: any,
+  deadline: Date | null,
+  userSettings: UserSettings
+): FeasibilityWarning[] => {
+  const warnings: FeasibilityWarning[] = [];
+
+  if (!deadline) return warnings;
+
+  const now = new Date();
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+
+  // CRITICAL: Task due in the past
+  if (deadline < now) {
+    warnings.push({
+      type: 'error',
+      category: 'deadline',
+      title: 'Deadline is in the past',
+      message: 'Cannot create tasks with deadlines that have already passed.',
+      suggestion: 'Set deadline to today or a future date.',
+      severity: 'critical'
+    });
+  }
+
+  // CRITICAL: Weekend deadline when user doesn't work weekends
+  const deadlineDay = deadline.getDay();
+  if (!userSettings.workDays.includes(deadlineDay)) {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    warnings.push({
+      type: 'error',
+      category: 'deadline',
+      title: 'Deadline on non-work day',
+      message: `Deadline is on ${dayNames[deadlineDay]}, but this isn't configured as a work day.`,
+      suggestion: 'Move deadline to a work day or add this day to your work days.',
+      severity: 'critical'
+    });
+  }
+
+  // MAJOR: Very tight deadline for large tasks
+  const hoursUntilDeadline = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+  if (hoursUntilDeadline < 24 && taskData.estimatedHours > 3) {
+    warnings.push({
+      type: 'warning',
+      category: 'deadline',
+      title: 'Large task with very tight deadline',
+      message: `${taskData.estimatedHours}-hour task due in ${Math.round(hoursUntilDeadline)} hours may be rushed.`,
+      suggestion: 'Consider if quality will suffer with such a tight deadline.',
+      severity: 'major'
+    });
+  }
+
+  return warnings;
+};
+
+// 13. WORKDAY DISTRIBUTION ISSUES
+const checkWorkdayDistribution = (
+  taskData: any,
+  deadline: Date | null,
+  userSettings: UserSettings
+): FeasibilityWarning[] => {
+  const warnings: FeasibilityWarning[] = [];
+
+  if (!deadline) return warnings;
+
+  const now = new Date();
+  let consecutiveNonWorkDays = 0;
+  let maxConsecutiveNonWorkDays = 0;
+  const currentDate = new Date(now);
+
+  // Check for long gaps between work days
+  while (currentDate <= deadline) {
+    if (userSettings.workDays.includes(currentDate.getDay())) {
+      consecutiveNonWorkDays = 0;
+    } else {
+      consecutiveNonWorkDays++;
+      maxConsecutiveNonWorkDays = Math.max(maxConsecutiveNonWorkDays, consecutiveNonWorkDays);
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // MAJOR: Long gaps between work days affect learning tasks
+  if (maxConsecutiveNonWorkDays >= 3 && taskData.category === 'Learning') {
+    warnings.push({
+      type: 'warning',
+      category: 'workdays',
+      title: 'Long gaps between learning sessions',
+      message: `You have ${maxConsecutiveNonWorkDays} consecutive non-work days. Learning tasks benefit from consistent practice.`,
+      suggestion: 'Consider adding weekend study days for learning tasks, or adjust frequency.',
+      severity: 'major'
+    });
+  }
+
+  // MAJOR: Very few work days configured
+  if (userSettings.workDays.length <= 2) {
+    warnings.push({
+      type: 'warning',
+      category: 'workdays',
+      title: 'Very limited work days',
+      message: `Only ${userSettings.workDays.length} work days per week configured. This limits scheduling flexibility.`,
+      suggestion: 'Consider adding more work days or increasing daily hours on existing work days.',
+      severity: 'major'
+    });
+  }
+
+  return warnings;
+};
+
+// 14. TASK COMPLETION IMPOSSIBILITIES
+const checkTaskCompletionFeasibility = (
+  taskData: any,
+  deadline: Date | null,
+  userSettings: UserSettings
+): FeasibilityWarning[] => {
+  const warnings: FeasibilityWarning[] = [];
+
+  // CRITICAL: Zero or negative time estimates
+  if (taskData.estimatedHours <= 0) {
+    warnings.push({
+      type: 'error',
+      category: 'completion',
+      title: 'Invalid time estimate',
+      message: 'Tasks must have a positive time estimate.',
+      suggestion: 'Enter a realistic time estimate for this task.',
+      severity: 'critical'
+    });
+  }
+
+  // CRITICAL: Extremely large one-sitting tasks
+  if (taskData.isOneTimeTask && taskData.estimatedHours > 12) {
+    warnings.push({
+      type: 'error',
+      category: 'completion',
+      title: 'Unrealistic one-sitting duration',
+      message: `${taskData.estimatedHours} hours is too long for a single work session. Human concentration and productivity drop significantly after 6-8 hours.`,
+      suggestion: 'Either break into multiple sessions or reduce scope to under 8 hours.',
+      severity: 'critical'
+    });
+  }
+
+  // CRITICAL: Minimum work block larger than daily capacity
+  if (taskData.minWorkBlock && taskData.minWorkBlock > userSettings.dailyAvailableHours * 60) {
+    warnings.push({
+      type: 'error',
+      category: 'completion',
+      title: 'Minimum work block exceeds daily capacity',
+      message: `Minimum work block of ${taskData.minWorkBlock} minutes exceeds your ${userSettings.dailyAvailableHours * 60} minutes of daily available time.`,
+      suggestion: 'Reduce minimum work block or increase daily available hours.',
+      severity: 'critical'
+    });
+  }
+
+  // MAJOR: Very short sessions for complex tasks
+  if (taskData.estimatedHours > 10 && taskData.targetFrequency === 'daily' && deadline) {
+    const daysUntilDeadline = Math.max(1, Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    const averageSessionLength = taskData.estimatedHours / daysUntilDeadline;
+
+    if (averageSessionLength < 1) {
+      warnings.push({
+        type: 'warning',
+        category: 'completion',
+        title: 'Very short sessions for complex task',
+        message: `Complex ${taskData.estimatedHours}h task would have ${(averageSessionLength * 60).toFixed(0)}-minute sessions. This may not allow meaningful progress.`,
+        suggestion: 'Consider weekly or 3x-week frequency for longer, more focused sessions.',
+        severity: 'major'
+      });
+    }
+  }
+
+  // MAJOR: Buffer time issues
+  if (deadline && userSettings.bufferDays > 0) {
+    const daysUntilDeadline = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (daysUntilDeadline <= userSettings.bufferDays) {
+      warnings.push({
+        type: 'warning',
+        category: 'completion',
+        title: 'Deadline conflicts with buffer preference',
+        message: `Deadline is in ${daysUntilDeadline} days but you prefer ${userSettings.bufferDays} buffer days.`,
+        suggestion: `Extend deadline by ${userSettings.bufferDays - daysUntilDeadline + 1} days for your preferred buffer.`,
+        severity: 'major'
+      });
+    }
+  }
+
+  return warnings;
+};
