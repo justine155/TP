@@ -802,17 +802,7 @@ const checkDeadlineRealism = (
   const todayEnd = new Date(now);
   todayEnd.setHours(23, 59, 59, 999);
 
-  // CRITICAL: Task due in the past
-  if (deadline < now) {
-    warnings.push({
-      type: 'error',
-      category: 'deadline',
-      title: 'Deadline is in the past',
-      message: 'Cannot create tasks with deadlines that have already passed.',
-      suggestion: 'Set deadline to today or a future date.',
-      severity: 'critical'
-    });
-  }
+  // Note: Past deadline check removed since date input already prevents past dates
 
   // CRITICAL: Weekend deadline when user doesn't work weekends
   const deadlineDay = deadline.getDay();
