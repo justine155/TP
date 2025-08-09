@@ -681,8 +681,12 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({
                   ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
+              title={hasCriticalFeasibilityIssues ? 'Critical feasibility issues must be resolved first' : ''}
             >
-              Add Task
+              {hasCriticalFeasibilityIssues
+                ? 'Resolve Critical Issues First'
+                : 'Add Task'
+              }
             </button>
             {onCancel && (
               <button
