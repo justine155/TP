@@ -194,27 +194,69 @@ const checkTimeEstimationFeasibility = (
     });
   }
   
-  // Unrealistic daily hours
+  // CRITICAL: Tasks due today that exceed daily capacity (non-one-sitting)
   if (deadline) {
-    const daysUntilDeadline = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    const requiredDailyHours = taskData.estimatedHours / Math.max(1, daysUntilDeadline);
-    
-    if (requiredDailyHours > userSettings.dailyAvailableHours) {
+    const now = new Date();
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+    const isDueToday = deadline <= todayEnd;
+
+    if (isDueToday && !taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
       warnings.push({
         type: 'error',
         category: 'estimation',
-        title: 'Impossible daily workload',
-        message: `Would require ${requiredDailyHours.toFixed(1)} hours per day, but you only have ${userSettings.dailyAvailableHours} hours available.`,
+        title: 'Task due today exceeds daily capacity',
+        message: `Task requires ${taskData.estimatedHours} hours but you only have ${userSettings.dailyAvailableHours} hours available today. This task isn't marked as "one sitting" so it can't be completed.`,
+        suggestion: 'Either mark as "Complete in one sitting" if possible, extend deadline to tomorrow, or reduce scope.',
+        severity: 'critical'
+      });
+    }
+
+    // CRITICAL: Tasks due today that exceed available hours even as one-sitting
+    if (isDueToday && taskData.isOneTimeTask && taskData.estimatedHours > userSettings.dailyAvailableHours) {
+      warnings.push({
+        type: 'error',
+        category: 'estimation',
+        title: 'One-sitting task due today exceeds daily capacity',
+        message: `One-sitting task requires ${taskData.estimatedHours} hours but you only have ${userSettings.dailyAvailableHours} hours available today.`,
+        suggestion: 'Extend deadline to tomorrow, reduce scope, or increase daily available hours.',
+        severity: 'critical'
+      });
+    }
+
+    // Calculate days until deadline (minimum 1 for tasks due today)
+    const msUntilDeadline = deadline.getTime() - now.getTime();
+    const daysUntilDeadline = Math.max(1, Math.ceil(msUntilDeadline / (1000 * 60 * 60 * 24)));
+    const requiredDailyHours = taskData.estimatedHours / daysUntilDeadline;
+
+    // CRITICAL: General impossible daily workload
+    if (!isDueToday && requiredDailyHours > userSettings.dailyAvailableHours) {
+      warnings.push({
+        type: 'error',
+        category: 'estimation',
+        title: 'Impossible daily workload required',
+        message: `Would require ${requiredDailyHours.toFixed(1)} hours per day for ${daysUntilDeadline} days, but you only have ${userSettings.dailyAvailableHours} hours available per day.`,
         suggestion: 'Extend deadline, reduce scope, or increase daily available hours.',
         severity: 'critical'
       });
-    } else if (requiredDailyHours > userSettings.dailyAvailableHours * 0.8) {
+    } else if (!isDueToday && requiredDailyHours > userSettings.dailyAvailableHours * 0.9) {
+      // MAJOR: Very intensive but technically possible
       warnings.push({
         type: 'warning',
         category: 'estimation',
-        title: 'Very intensive schedule required',
+        title: 'Extremely intensive schedule required',
         message: `Will require ${requiredDailyHours.toFixed(1)} hours per day (${Math.round(requiredDailyHours / userSettings.dailyAvailableHours * 100)}% of your available time).`,
-        suggestion: 'Consider extending deadline for a more manageable workload.',
+        suggestion: 'Consider extending deadline for a more sustainable workload.',
+        severity: 'major'
+      });
+    } else if (!isDueToday && requiredDailyHours > userSettings.dailyAvailableHours * 0.7) {
+      // MAJOR: High intensity warning
+      warnings.push({
+        type: 'warning',
+        category: 'estimation',
+        title: 'High intensity schedule required',
+        message: `Will require ${requiredDailyHours.toFixed(1)} hours per day (${Math.round(requiredDailyHours / userSettings.dailyAvailableHours * 100)}% of your available time).`,
+        suggestion: 'Consider if this intensive schedule is sustainable.',
         severity: 'major'
       });
     }
