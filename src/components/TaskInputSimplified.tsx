@@ -10,9 +10,19 @@ interface TaskInputProps {
   onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   onCancel?: () => void;
   userSettings: UserSettings;
+  existingTasks?: Task[];
+  studyPlans?: StudyPlan[];
+  commitments?: FixedCommitment[];
 }
 
-const TaskInputSimplified: React.FC<TaskInputProps> = ({ onAddTask, onCancel, userSettings }) => {
+const TaskInputSimplified: React.FC<TaskInputProps> = ({
+  onAddTask,
+  onCancel,
+  userSettings,
+  existingTasks = [],
+  studyPlans = [],
+  commitments = []
+}) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -379,7 +389,7 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({ onAddTask, onCancel, us
     >
       <option value="daily">📅 Daily progress - Work a bit each day</option>
       <option value="3x-week">🗓️ Few times per week - Every 2-3 days</option>
-      <option value="weekly">�� Weekly sessions - Once per week</option>
+      <option value="weekly">📆 Weekly sessions - Once per week</option>
       <option value="flexible">⏰ When I have time - Flexible scheduling</option>
     </select>
   </div>
