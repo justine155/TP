@@ -173,52 +173,28 @@ const TaskFeasibilityWarningsCompact: React.FC<TaskFeasibilityWarningsCompactPro
                   
                   <div className="space-y-1">
                     {alternativeSuggestions.frequency && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-blue-800 dark:text-blue-200">
-                          Change frequency to <strong>{alternativeSuggestions.frequency}</strong>
-                        </span>
-                        <button
-                          onClick={() => applySuggestion({ frequency: alternativeSuggestions.frequency })}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          Apply
-                        </button>
+                      <div className="text-xs text-blue-800 dark:text-blue-200">
+                        • Change frequency to <strong>{alternativeSuggestions.frequency}</strong>
                       </div>
                     )}
-                    
+
                     {alternativeSuggestions.deadline && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-blue-800 dark:text-blue-200">
-                          Extend deadline to <strong>{new Date(alternativeSuggestions.deadline).toLocaleDateString()}</strong>
-                        </span>
-                        <button
-                          onClick={() => applySuggestion({ deadline: alternativeSuggestions.deadline })}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          Apply
-                        </button>
+                      <div className="text-xs text-blue-800 dark:text-blue-200">
+                        • Extend deadline to <strong>{new Date(alternativeSuggestions.deadline).toLocaleDateString()}</strong>
                       </div>
                     )}
-                    
+
                     {alternativeSuggestions.markAsOneSitting && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-blue-800 dark:text-blue-200">
-                          Mark as <strong>"Complete in one sitting"</strong>
-                        </span>
-                        <button
-                          onClick={() => applySuggestion({ markAsOneSitting: true })}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          Apply
-                        </button>
+                      <div className="text-xs text-blue-800 dark:text-blue-200">
+                        • Mark as <strong>"Complete in one sitting"</strong>
                       </div>
                     )}
-                    
+
                     <button
                       onClick={() => applySuggestion(alternativeSuggestions)}
                       className="w-full mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors font-medium"
                     >
-                      Apply All Fixes
+                      Apply Fixes
                     </button>
                   </div>
                 </div>
