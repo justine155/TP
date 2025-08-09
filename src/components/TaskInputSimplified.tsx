@@ -634,6 +634,13 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({
   </div>
 )}
 
+          {/* Feasibility Warnings */}
+          <TaskFeasibilityWarnings
+            feasibilityResult={feasibilityResult}
+            onSuggestionApply={handleApplySuggestions}
+            className="mt-4"
+          />
+
           {/* Validation Feedback */}
           {!isFormValid && showValidationErrors && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2 dark:bg-red-900/20 dark:border-red-700">
