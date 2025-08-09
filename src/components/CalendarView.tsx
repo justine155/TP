@@ -554,11 +554,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     };
 
     // IMPROVED: Try to place at exact target time first, with minimal snapping
-    // Snap to 15-minute intervals instead of buffer intervals for better precision
-    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+    // Snap to user's selected time interval for consistency with calendar grid
+    const SNAP_INTERVAL = timeInterval * 60 * 1000; // Convert user's time interval to milliseconds
 
-    // Round target time to nearest 15-minute interval
-    const roundedTarget = new Date(Math.round(targetStart.getTime() / FIFTEEN_MINUTES) * FIFTEEN_MINUTES);
+    // Round target time to nearest time interval (matches calendar grid)
+    const roundedTarget = new Date(Math.round(targetStart.getTime() / SNAP_INTERVAL) * SNAP_INTERVAL);
     const targetEnd = new Date(roundedTarget.getTime() + sessionDurationMs);
 
     // First, try the exact target location
@@ -567,10 +567,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
 
     // If exact location doesn't work, search for nearest alternative
-    // Search in smaller increments (15 minutes) for better precision
+    // Search in time interval increments for consistent grid placement
     const maxSearchTime = 6 * 60 * 60 * 1000; // Search within 6 hours (reduced from 12)
 
-    for (let offset = FIFTEEN_MINUTES; offset <= maxSearchTime; offset += FIFTEEN_MINUTES) {
+    for (let offset = SNAP_INTERVAL; offset <= maxSearchTime; offset += SNAP_INTERVAL) {
       // Try both directions from target time, but prioritize forward direction first
       const directions = [1, -1];
 
