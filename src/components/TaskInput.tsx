@@ -242,6 +242,54 @@ const TaskInput: React.FC<TaskInputProps> = ({
     return checkFrequencyDeadlineConflict(taskForCheck, userSettings);
   }, [formData.deadline, formData.estimatedHours, formData.estimatedMinutes, formData.targetFrequency, formData.deadlineType, formData.minWorkBlock, userSettings]);
 
+  // Comprehensive feasibility checking
+  const feasibilityResult = useMemo(() => {
+    // Only run feasibility check if we have minimum required data
+    if (!formData.title.trim() || convertToDecimalHours(formData.estimatedHours, formData.estimatedMinutes) <= 0) {
+      return { isValid: true, warnings: [] };
+    }
+
+    const taskDataForCheck = {
+      title: formData.title,
+      deadline: formData.deadline,
+      estimatedHours: convertToDecimalHours(formData.estimatedHours, formData.estimatedMinutes),
+      targetFrequency: formData.targetFrequency,
+      deadlineType: formData.deadlineType,
+      importance: formData.importance,
+      category: formData.category === 'Other' ? formData.customCategory : formData.category,
+      minWorkBlock: formData.minWorkBlock,
+      maxSessionLength: formData.maxSessionLength,
+      isOneTimeTask: formData.isOneTimeTask,
+      preferredTimeSlots: formData.preferredTimeSlots
+    };
+
+    return checkTaskFeasibility(
+      taskDataForCheck,
+      userSettings,
+      existingTasks,
+      studyPlans,
+      commitments
+    );
+  }, [
+    formData.title,
+    formData.deadline,
+    formData.estimatedHours,
+    formData.estimatedMinutes,
+    formData.targetFrequency,
+    formData.deadlineType,
+    formData.importance,
+    formData.category,
+    formData.customCategory,
+    formData.minWorkBlock,
+    formData.maxSessionLength,
+    formData.isOneTimeTask,
+    formData.preferredTimeSlots,
+    userSettings,
+    existingTasks,
+    studyPlans,
+    commitments
+  ]);
+
   // Enhanced validation with better error messages
   const isTitleValid = formData.title.trim().length > 0;
   const isTitleLengthValid = formData.title.trim().length <= 100; // Max 100 characters
