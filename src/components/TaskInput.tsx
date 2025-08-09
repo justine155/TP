@@ -327,8 +327,10 @@ const TaskInput: React.FC<TaskInputProps> = ({
   const isCustomCategoryValid = !showCustomCategory || (formData.customCategory && formData.customCategory.trim().length > 0 && formData.customCategory.trim().length <= 50);
 
   const isOneSittingTooLong = formData.isOneTimeTask && totalTime > userSettings.dailyAvailableHours;
+  const hasCriticalFeasibilityIssues = feasibilityResult.warnings?.some(w => w.severity === 'critical') || false;
   const isFormValid = isTitleValid && isTitleLengthValid && isDeadlineValid && isDeadlineNotPast &&
-                     isEstimatedValid && isEstimatedReasonable && isImpactValid && isCustomCategoryValid;
+                     isEstimatedValid && isEstimatedReasonable && isImpactValid && isCustomCategoryValid &&
+                     !hasCriticalFeasibilityIssues;
 
   // Enhanced validation messages
   const getValidationErrors = () => {
