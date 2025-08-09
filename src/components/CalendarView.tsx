@@ -1056,8 +1056,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-xl p-6 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 dark:shadow-gray-900 dark:text-gray-100">
         {/* Drag feedback notification */}
         {dragFeedback && (
-          <div className="fixed top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
-            {dragFeedback}
+          <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg border-l-4 transition-all duration-300 transform ${
+            dragFeedback.includes('✅') ? 'bg-green-500 border-green-700 text-white' :
+            dragFeedback.includes('📍') ? 'bg-blue-500 border-blue-700 text-white' :
+            dragFeedback.includes('🔄') ? 'bg-orange-500 border-orange-700 text-white' :
+            dragFeedback.includes('Dragging') ? 'bg-purple-500 border-purple-700 text-white' :
+            dragFeedback.includes('micro-movement') ? 'bg-gray-500 border-gray-700 text-white' :
+            'bg-red-500 border-red-700 text-white'
+          }`}>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium">{dragFeedback}</span>
+            </div>
           </div>
         )}
 
