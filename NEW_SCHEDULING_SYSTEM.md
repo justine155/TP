@@ -8,7 +8,6 @@ The TimePilot scheduling system has been completely redesigned to implement a mo
 
 ### 1. Removed Manual Distribution Options
 - **Removed**: Even, Front-load, and Back-load options from Settings
-- **Replaced with**: Automatic strategy determination based on task characteristics
 
 ### 2. New Pressure Preference Setting
 - **Added**: "Study Style Preference" in Settings
