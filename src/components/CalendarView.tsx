@@ -641,6 +641,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       return;
     }
 
+    // Calculate the time difference to inform user if session was moved
+    const targetTime = moment(start).format('HH:mm');
+    const actualTime = moment(availableSlot.start).format('HH:mm');
+    const timeDifferenceMinutes = Math.abs(moment(availableSlot.start).diff(moment(start), 'minutes'));
+
+    // Provide specific feedback about placement
+    let placementMessage = '';
+    if (timeDifferenceMinutes === 0) {
+      placementMessage = `Session placed at exactly ${actualTime}`;
+    } else if (timeDifferenceMinutes <= 15) {
+      placementMessage = `Session placed at ${actualTime} (${timeDifferenceMinutes}min from target)`;
+    } else {
+      placementMessage = `Session moved to ${actualTime} (nearest available slot)`;
+    }
+
     // Get the original plan date where the session was dragged from
     const originalPlanDate = event.resource.data.planDate;
 
@@ -722,9 +737,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
     onUpdateStudyPlans(updatedPlans);
 
-    const snappedTime = moment(availableSlot.start).format('HH:mm');
-    setDragFeedback(`Session moved to ${moment(targetDate).format('MMM D')} at ${snappedTime}`);
-    setTimeout(() => setDragFeedback(''), 3000);
+    // Show the placement feedback message
+    setDragFeedback(placementMessage);
+    setTimeout(() => setDragFeedback(''), 4000); // Show for 4 seconds
   };
 
 
