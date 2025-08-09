@@ -263,13 +263,22 @@ const TaskInput: React.FC<TaskInputProps> = ({
       preferredTimeSlots: formData.preferredTimeSlots
     };
 
-    return checkTaskFeasibility(
+    const result = checkTaskFeasibility(
       taskDataForCheck,
       userSettings,
       existingTasks,
       studyPlans,
       commitments
     );
+
+    console.log('📊 Feasibility Result:', {
+      isValid: result.isValid,
+      warningCount: result.warnings.length,
+      criticalWarnings: result.warnings.filter(w => w.severity === 'critical').length,
+      taskData: taskDataForCheck
+    });
+
+    return result;
   }, [
     formData.title,
     formData.deadline,
