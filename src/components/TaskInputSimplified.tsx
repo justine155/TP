@@ -485,7 +485,7 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({
     >
       <option value="daily">📅 Daily progress - Work a bit each day</option>
       <option value="3x-week">🗓️ Few times per week - Every 2-3 days</option>
-      <option value="weekly">��� Weekly sessions - Once per week</option>
+      <option value="weekly">📆 Weekly sessions - Once per week</option>
       <option value="flexible">⏰ When I have time - Flexible scheduling</option>
     </select>
   </div>
@@ -634,11 +634,11 @@ const TaskInputSimplified: React.FC<TaskInputProps> = ({
   </div>
 )}
 
-          {/* Feasibility Warnings */}
-          <TaskFeasibilityWarnings
+          {/* Feasibility Warnings - Compact */}
+          <TaskFeasibilityWarningsCompact
             feasibilityResult={feasibilityResult}
             onSuggestionApply={handleApplySuggestions}
-            className="mt-4"
+            className="mt-3"
           />
 
           {/* Validation Feedback */}
