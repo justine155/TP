@@ -557,6 +557,13 @@ const TaskInput: React.FC<TaskInputProps> = ({
               </div>
             )}
 
+            {/* Feasibility Warnings */}
+            <TaskFeasibilityWarnings
+              feasibilityResult={feasibilityResult}
+              onSuggestionApply={handleApplySuggestions}
+              className="mt-4"
+            />
+
             {/* Task Timeline Toggle Button */}
             <div className="mt-4">
               <button
